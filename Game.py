@@ -1,6 +1,6 @@
 import numpy as np
 from random import choice, choices, shuffle
-from constants import b_value, r_value, d_value
+from constants import b_value, r_value, verbose
 from invoke_animal import invoke_animal, validate_board
 
 
@@ -27,7 +27,6 @@ class Game():
 
     def play_round(self):
         # black turn
-        # list_of_free_spots = np.column_stack(np.where(self.board == 0))
         if len(self.moves_list) == 1:
             selected = self.moves_list[0]
             self.board[selected[0]][selected[1]] = b_value
@@ -43,18 +42,30 @@ class Game():
             self.moves_list = self.moves_list[1:]
             if self.check_game_finished():
                 return True
+
+            if self.normal_turns_prob.draw_idx() > 0:
+                temp_board, temp_moves_list = invoke_animal(self.board, self.moves_list, self.animal_prob)
+                self.board = temp_board
+                self.moves_list = np.copy(temp_moves_list)
+                if self.check_game_finished():
+                    return True
         else:
             if self.check_game_finished():
                 return True
         # pick animal
-        if self.normal_turns_prob.draw_idx() > 0:
-            self.board, self.moves_list = invoke_animal(self.board, self.moves_list, self.animal_prob)
-            if self.check_game_finished():
-                return True
+
         return False
 
     def play_game(self):
         finished = self.play_round()
+        if verbose:
+            print(self.board)
+            print(self.moves_list)
+            print("finished a round")
         while not finished:
             finished = self.play_round()
+            if verbose:
+                print(self.board)
+                print(self.moves_list)
+                print("finished a round")
         return self.winner

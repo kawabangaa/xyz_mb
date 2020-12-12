@@ -1,12 +1,15 @@
 import numpy as np
 from constants import animal_cnt
-from constants import b_value, r_value, d_value
+from constants import b_value, r_value, d_value, verbose
 
 def invoke_animal(board, moves, animal_prob):
     animal_idx = animal_prob.draw_idx()
     animal_cnt[animal_idx] += 1
+    if verbose:
+        print("invoked: "+ str(animal_idx))
     animal_list = [wasp, chameleon, snake,cheetah]
-    return animal_list[animal_idx](board, moves)
+    ret_board, ret_moves = animal_list[animal_idx](board, moves)
+    return ret_board, ret_moves
 
 def wasp(board, moves):
     # shift rows up with wrap around
@@ -26,14 +29,16 @@ def snake(board, moves):
 
 def cheetah(board, moves):
     cheetah_moves = [b_value, b_value, r_value, r_value]
-    for idx in range(min(len(moves), 4)):
-        selected = moves[0]
-        board[selected[0]][selected[1]] = cheetah_moves[idx]
-        moves = moves[1:]
-        done, _ = validate_board(board)
+    int_board = np.copy(board)
+    int_moves = np.copy(moves)
+    for idx in range(min(len(int_moves), 4)):
+        selected = int_moves[0]
+        int_board[selected[0]][selected[1]] = cheetah_moves[idx]
+        int_moves = int_moves[1:]
+        done, _ = validate_board(int_board)
         if done:
             break
-    return board, moves
+    return int_board, int_moves
 
 def permutate_board(board, moves_list, permu):
     permu_board = np.copy(board)
@@ -69,7 +74,7 @@ def validate_board(board):
         elif value == R_WON:
             winner = r_value
             ret = True
-    if not (d_value in board):
+    if (not ret) and (not (d_value in board)):
         winner = d_value
         ret = True
     return ret, winner
