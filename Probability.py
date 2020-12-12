@@ -13,7 +13,7 @@ class Probability():
             self.weights[idx] -= 1
 
     def draw_idx(self):
-        return choices([i for i in range(self.num_of_elements)], self.weights)
+        return choices([i for i in range(self.num_of_elements)], self.weights)[0]
 
     def get_weights(self):
         out = []
