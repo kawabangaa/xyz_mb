@@ -1,12 +1,12 @@
 import numpy as np
-from random import choice, choices, shuffle
+from random import randint
 from constants import b_value, r_value, verbose
-from invoke_animal import invoke_animal, validate_board
+from rounds import invoke_animal, validate_board
 
 
 class Game():
 
-    def __init__(self, normal_turns_prob, animal_prob):
+    def __init__(self, normal_turns_prob, animal_prob, ):
         self.normal_turns_prob = normal_turns_prob
         self.animal_prob = animal_prob
         self.reset()
@@ -18,30 +18,32 @@ class Game():
         self.moves_list = np.column_stack(np.where(self.board == 0))
         np.random.shuffle(self.moves_list)
 
-    def set_probability(self, prob):
-        self.prob = prob
-
     def check_game_finished(self):
         ret, self.winner = validate_board(self.board)
         return ret
 
     def play_round(self):
-        # black turn
+        available_board_values = [b_value, r_value]
         if len(self.moves_list) == 1:
+            value_idx = randint(0,1)
             selected = self.moves_list[0]
-            self.board[selected[0]][selected[1]] = b_value
+            self.board[selected[0]][selected[1]] = available_board_values[value_idx]
             self.moves_list = []
         elif len(self.moves_list) > 1:
-            selected = self.moves_list[0]
-            self.board[selected[0]][selected[1]] = b_value
-            self.moves_list = self.moves_list[1:]
-            if self.check_game_finished():
-                return True
-            selected = self.moves_list[0]
-            self.board[selected[0]][selected[1]] = r_value
-            self.moves_list = self.moves_list[1:]
-            if self.check_game_finished():
-                return True
+            value_idx = randint(0, 1)
+            for i in range(2):
+                selected = self.moves_list[0]
+                self.board[selected[0]][selected[1]] = available_board_values[value_idx]
+                value_idx += 1
+                value_idx %= 2
+                self.moves_list = self.moves_list[1:]
+                if self.check_game_finished():
+                    return True
+            # selected = self.moves_list[0]
+            # self.board[selected[0]][selected[1]] = r_value
+            # self.moves_list = self.moves_list[1:]
+            # if self.check_game_finished():
+            #     return True
 
             if self.normal_turns_prob.draw_idx() > 0:
                 temp_board, temp_moves_list = invoke_animal(self.board, self.moves_list, self.animal_prob)

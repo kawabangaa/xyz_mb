@@ -2,6 +2,7 @@ import numpy as np
 from constants import animal_cnt
 from constants import b_value, r_value, d_value, verbose
 
+
 def invoke_animal(board, moves, animal_prob):
     animal_idx = animal_prob.draw_idx()
     animal_cnt[animal_idx] += 1

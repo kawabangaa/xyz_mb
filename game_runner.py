@@ -4,7 +4,7 @@ from Probability import Probability
 from constants import animal_cnt, num_of_animal, verbose
 def run_games():
     res = {-1:0,0:0,1:0}
-    special_prob = Probability(2,[0,1])
+    special_prob = Probability(2,[2,1])
     loop_range = 3
     step_size = 1
     plays_per_comb = 100
@@ -37,11 +37,10 @@ def run_games():
                         if verbose:
                             print("finished params, result: "+ str(csv_row))
                         res_writer.writerow(csv_row)
-    print(animal_cnt)
 def run_one_game():
     res = {-1: 0, 0: 0, 1: 0}
     plays_per_comb = 1000
-    normal_prob = Probability(2, [1, 0])
+    normal_prob = Probability(2, [2, 1])
     animal_prob = Probability(num_of_animal, [0, 1, 0, 0])
     game = Game(normal_prob, animal_prob)
     for i in range(plays_per_comb):
@@ -61,5 +60,5 @@ def test_probability():
     print(test)
 
 if __name__ == '__main__':
-    run_one_game()
-    #run_games()
+    #run_one_game()
+    run_games()
