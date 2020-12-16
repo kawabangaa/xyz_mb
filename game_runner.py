@@ -3,17 +3,18 @@ from Game import Game
 from Probability import Probability
 from constants import animal_cnt, num_of_animal, verbose
 def run_games():
-    res = {-1:0,0:0,1:0}
+
     special_prob = Probability(2,[2,1])
-    loop_range = 3
+    loop_range = 8
     step_size = 1
-    plays_per_comb = 100
+    plays_per_comb = 5000
     with open('result.csv', mode='w') as res_file:
         res_writer = csv.writer(res_file)
         for a in range(0,loop_range,step_size):
             for b in range(0,loop_range,step_size):
                 for c in range(0,loop_range,step_size):
                     for d in range(0,loop_range,step_size):
+                        res = {-1: 0, 0: 0, 1: 0}
                         if verbose:
                             print("starting with new params: "+ str(a) + str(b) + str(c) + str(d))
                         csv_row = []
@@ -53,12 +54,13 @@ def run_one_game():
     print(res)
 
 def test_probability():
-    prob = Probability(3,[1,2,2])
+    prob = Probability(3,[1,0,1])
     test = [0,0,0]
     for _ in range(1000):
         test[prob.draw_idx()] += 1
     print(test)
 
 if __name__ == '__main__':
+    #test_probability()
     #run_one_game()
     run_games()
