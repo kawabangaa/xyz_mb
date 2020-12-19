@@ -125,9 +125,7 @@ class Game():
     def play_game(self):
         self.tactics = {b_value: "random", r_value: "random"}
         if self.draw_prob.draw_idx() > 0:
-            available_board_values = [b_value, r_value]
-            value_idx = randint(0, 1)
-            self.tactics[available_board_values[value_idx]] = "draw"
+            self.tactics = {b_value: "draw", r_value: "draw"}
         finished = self.play_round()
         if verbose:
             self.print_status("finished a round")
