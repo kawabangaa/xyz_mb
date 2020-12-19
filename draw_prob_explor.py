@@ -1,19 +1,18 @@
 import pandas as pd
-from bokeh.palettes import inferno, viridis
-from bokeh.models import (BasicTicker, ColorBar, ColumnDataSource,
-                          LinearColorMapper, PrintfTickFormatter, Label, Title)
-from bokeh.plotting import figure, save
-from bokeh.io import output_file
-from bokeh.transform import transform
 from Game import Game
 from Probability import Probability
-from constants import animal_cnt, num_of_animal, VERBOSE, BLACK_VALUE, RED_VALUE, DRAW_VALUE
+from constants import *
 
 
-def run_games(special_prob_dist, selected_animal_prob, draw_max_weight, draw_resulotion, plays_per_comb):
+
+
+def run_games(special_prob_dist, selected_animal_prob, golden_draw_percentage, draw_max_weight, draw_resulotion, plays_per_comb):
+    """
+    given s, b probabilities and g (golden draw percentage) tries different draw tactic probabilities (d)
+    to search for the best d. the search is a for loop over different possibilities.
+    """
     special_prob = Probability(2, special_prob_dist)
-    # in this mode we are not exploring the draw probabilities
-    animal_prob = Probability(num_of_animal, selected_animal_prob)
+    animal_prob = Probability(NUM_OF_BEASTS, selected_animal_prob)
     idx = 0
     data = []
     for draw_weight in range(1, draw_max_weight, draw_resulotion):
@@ -39,46 +38,18 @@ def run_games(special_prob_dist, selected_animal_prob, draw_max_weight, draw_res
                      special_prob_dist[1] / sum(special_prob_dist)])
         idx += 1
     df = pd.DataFrame(data,
-                      columns=['draw_weight', 'draw_max_weight', 'black per', 'red per', 'draw_per', 'special prob'])
+                      columns=[DRAW_WEIGHT_COL, DRAW_MAX_WEIGHT_COL, BLACK_PERC_COL_CONST, RED_PERC_COL_CONST, DRAW_PERC_COL_CONST])
+    df[DRAW_DIFF_FROM_GOLDEN_COL] = (df[DRAW_PERC_COL_CONST] - golden_draw_percentage).abs()
     return df
 
 
-def run_and_plot_draw_prob(special_prob_dist, selected_animal_prob):
-    df = run_games(special_prob_dist, selected_animal_prob, 100, 10, 1000)
+def run_and_plot_draw_prob(s, b, g):
+    df = run_games(s, b, g, 100, 10, 1000)
     df.to_csv('draw_prob.csv')
-    plot_draw_prob(df, "draw_prob")
-
-
-def plot_draw_prob(df, output_file_name):
-    df['draw_prob'] = (df['draw_weight'] / df['draw_max_weight'])
-    df = df.sort_values('draw_prob')
-    df['index'] = df.index.astype(str)
-
-    source = ColumnDataSource(df)
-    output_file_name_with_ext = str(output_file_name) + ".html"
-    output_file(output_file_name_with_ext)
-
-    tooltips = [("draw prob", "@draw_prob"), ("draw per", "@draw_per")]
-    p = figure(plot_height=max(df.shape[0] * 5, 700), title=None,
-               toolbar_location="right", tools="pan, box_select, zoom_in, zoom_out, save, reset, hover",
-               tooltips=tooltips)
-
-    label_opts = dict(x=0, y=0, x_units='screen', y_units='screen')
-    msg2 = "black - red win (in percentage, over X games) difference"
-    msg1 = "as a function of the probability of each animal to appear in the game"
-    caption1 = Label(text=msg1, **label_opts)
-    p.add_layout(caption1, 'above')
-    caption2 = Label(text=msg2, **label_opts)
-    p.add_layout(caption2, 'above')
-
-    p.axis.visible = True
-
-    p.circle('draw_prob', 'draw_per', size=20, color="navy", alpha=0.5, source=source)
-
-    p.ygrid.grid_line_color = None
-
-    save(p)
 
 
 if __name__ == '__main__':
-    run_and_plot_draw_prob([2, 1], [0.273, 0.364, 0.273, 0.09])
+    g = 25 # in percentages
+    s = [2, 1] # weights
+    b = [0.273, 0.364, 0.273, 0.09] # selected beast probability
+    run_and_plot_draw_prob(s, b, g)

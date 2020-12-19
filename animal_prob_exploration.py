@@ -1,122 +1,63 @@
-import csv
-
 import pandas as pd
-from bokeh.palettes import inferno, viridis
-from bokeh.models import (BasicTicker, ColorBar, ColumnDataSource,
-                          LinearColorMapper, PrintfTickFormatter, Label, Title)
-from bokeh.plotting import figure, save
-from bokeh.io import output_file
-from bokeh.transform import transform
 from Game import Game
 from Probability import Probability
-from constants import animal_cnt, num_of_animal, VERBOSE, BLACK_VALUE, RED_VALUE, DRAW_VALUE
+from constants import *
 
 
-def run_games(special_prob_dist, max_weight, weight_resulotion, plays_per_comb):
-    special_prob = Probability(2, special_prob_dist)
-    draw_prob = Probability(2, [1, 0])  # in this mode we are not exploring the draw probabilities
+def run_games(s_distribution, max_beast_weight, beast_weight_resolution, games_per_combination):
+    """
+    simulates different beast weights to find the ones with the smallest black-red win difference.
+    """
+    special_prob = Probability(2, s_distribution)
+    draw_prob = Probability(2, [1, 0])
     idx = 0
     data = []
-    for wasp_weight in range(1, max_weight, weight_resulotion):
-        for chameleon_weight in range(1, max_weight, weight_resulotion):
-            for snake_weight in range(1, max_weight, weight_resulotion):
-                for cheetah_weight in range(1, max_weight, weight_resulotion):
+    for wasp_weight in range(1, max_beast_weight, beast_weight_resolution):
+        for chameleon_weight in range(1, max_beast_weight, beast_weight_resolution):
+            for snake_weight in range(1, max_beast_weight, beast_weight_resolution):
+                for cheetah_weight in range(1, max_beast_weight, beast_weight_resolution):
                     # Generating the games
-                    res = {BLACK_VALUE: 0, DRAW_VALUE: 0, RED_VALUE: 0}
+                    score = {BLACK_VALUE: 0, DRAW_VALUE: 0, RED_VALUE: 0}
                     if VERBOSE:
                         print("starting with new params: " + str(wasp_weight) + str(chameleon_weight) + str(
                             snake_weight) + str(cheetah_weight))
-                    animal_prob = Probability(num_of_animal,
+                    animal_prob = Probability(NUM_OF_BEASTS,
                                               [wasp_weight, chameleon_weight, snake_weight, cheetah_weight])
                     game = Game(special_prob, animal_prob, draw_prob)
-                    for i in range(plays_per_comb):
+                    for i in range(games_per_combination):
                         if VERBOSE:
                             print("starting game " + str(i))
-                        res[game.play_game()] += 1
+                        score[game.play_game()] += 1
                         if VERBOSE:
-                            print('result stake: ' + str(res))
+                            print('result stake: ' + str(score))
                         game.reset()
                     # Converting results into percentages
-                    factor = 100.0 / sum(res.values())
-                    for k in res:
-                        res[k] = res[k] * factor
+                    factor = 100.0 / sum(score.values())
+                    for k in score:
+                        score[k] = score[k] * factor
                     if VERBOSE:
-                        print("finished params, result: " + str(res))
+                        print("finished params, result: " + str(score))
                     # Inserting the data into the data list
                     data.append(
-                        [wasp_weight, chameleon_weight, snake_weight, cheetah_weight, res[BLACK_VALUE], res[RED_VALUE],
-                         res[DRAW_VALUE], special_prob_dist[1] / sum(special_prob_dist)])
+                        [wasp_weight, chameleon_weight, snake_weight, cheetah_weight, score[BLACK_VALUE],
+                         score[RED_VALUE],
+                         score[DRAW_VALUE]])
                     idx += 1
-    df = pd.DataFrame(data, columns=['wasp', 'chameleon', 'snake', 'cheetah', 'black per', 'red per', 'draw per',
-                                     'special prob'])
+    df = pd.DataFrame(data, columns=[WASP_WEIGHT_COL_CONST, CHAM_WEIGHT_COL_CONST, SNAKE_WEIGHT_COL_CONST,
+                                     CHEET_WEIGHT_COL_CONST, BLACK_PERC_COL_CONST, RED_PERC_COL_CONST,
+                                     DRAW_PERC_COL_CONST])
+    df[RED_BLACK_DIFF_COL_CONST] = (df[BLACK_PERC_COL_CONST] - df[RED_PERC_COL_CONST]).abs()
     return df
 
 
 def run_and_plot_animal_prob(special_prob_dist, max_weight_per_animal, weight_resulotion, plays_per_comb):
     df = run_games(special_prob_dist, max_weight_per_animal, weight_resulotion, plays_per_comb)
     df.to_csv('animal_prob_exploration.csv')
-    plot_animal_prob_explor(df, df.shape[0], "animal_prob_exploration_big")
-    get_top_animal_prob(df)
-
-
-def get_top_animal_prob(df):
-    plot_animal_prob_explor(df, 5, "animal_prob_exploration_top")
-    df['black_red_diff'] = (df['red per'] - df['black per']).abs()
-    df = df.sort_values(['black_red_diff'])
-    top_animal_prob = df[:5]
-    print(top_animal_prob)
-
-
-def plot_animal_prob_explor(df, num_of_rows_to_plot, output_file_name):
-    df['black_red_diff'] = (df['red per'] - df['black per']).abs()
-    df = df.sort_values('black_red_diff')
-    df = df.head(num_of_rows_to_plot)
-    df['index'] = df.index.astype(str)
-    animal_col = ['wasp', 'chameleon', 'snake', 'cheetah']
-    df[animal_col] = df[animal_col].div(df[animal_col].sum(axis=1), axis=0).fillna(0)
-    df = df.sort_values(animal_col)
-
-    source = ColumnDataSource(df)
-    output_file_name_with_ext = str(output_file_name) + ".html"
-    output_file(output_file_name_with_ext)
-
-    colors = ["#7fc6a4", "#EF767A", "#FFE347", "#0091AD"]
-    tooltips = [("wasp", "@wasp"), ("chameleon", "@chameleon"), ("snake", "@snake"), ("cheetah", "@cheetah"),
-                ("black red diff", "@black_red_diff")]
-    p = figure(y_range=list(df["index"].unique()), plot_height=max(df.shape[0] * 5, 700), title=None,
-               toolbar_location=None, tools="pan, box_select, zoom_in, zoom_out, save, reset, hover", tooltips=tooltips)
-
-    label_opts = dict(x=0, y=0, x_units='screen', y_units='screen')
-    msg2 = "black - red win (in percentage, over X games) difference"
-    msg1 = "as a function of the probability of each animal to appear in the game"
-    caption1 = Label(text=msg1, **label_opts)
-    p.add_layout(caption1, 'above')
-    caption2 = Label(text=msg2, **label_opts)
-    p.add_layout(caption2, 'above')
-
-    p.axis.visible = False
-    p.hbar_stack(animal_col, y='index', height=1, color=colors, source=source,
-                 legend_label=animal_col)
-    p.add_layout(p.legend[0], 'right')
-
-    colors = viridis(df['black_red_diff'].nunique())
-    mapper = LinearColorMapper(palette=colors, low=df['black_red_diff'].min(), high=df['black_red_diff'].max())
-
-    p.rect(x=1.07, y='index', width=0.1, height=0.9, source=source,
-           line_color=None, fill_color=transform('black_red_diff', mapper))
-    color_bar = ColorBar(color_mapper=mapper,
-                         ticker=BasicTicker(desired_num_ticks=30),
-                         formatter=PrintfTickFormatter(format="%d"),
-                         title="red - black win % diff",
-                         location='center',
-                         orientation='horizontal', )
-
-    p.add_layout(color_bar, 'below')
-
-    p.ygrid.grid_line_color = None
-
-    save(p)
 
 
 if __name__ == '__main__':
-    run_and_plot_animal_prob([2, 1], 5, 1, 5000)
+    s_distribution = [2, 1]
+    max_beast_weight = 5
+    beast_weight_resolution = 1
+    games_per_combination = 1000
+    run_and_plot_animal_prob(s_distribution, max_beast_weight, beast_weight_resolution, games_per_combination)
