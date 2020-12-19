@@ -1,20 +1,37 @@
 import numpy as np
 from constants import animal_cnt
-from constants import b_value, r_value, d_value, verbose
+from constants import BLACK_VALUE, RED_VALUE, DRAW_VALUE, VERBOSE
 
-animal_names = ["wasp", "chameleon", "snake", "cheetah"]
+BEAST_STRING = ["wasp", "chameleon", "snake", "cheetah"]
 
-def invoke_animal(board, moves, animal_prob):
-    animal_idx = animal_prob.draw_idx()
-    animal_cnt[animal_idx] += 1
-    if verbose:
-        print("invoked: " + str(animal_names[animal_idx]))
-    animal_list = [wasp, chameleon, snake, cheetah]
-    ret_board, ret_moves = animal_list[animal_idx](board, moves)
+def invoke_beast(board, moves, beast_prob):
+    """
+    invokes a single beast on the current board. draws from the beast probability which beast is to be invoked,
+    invokes it and return the modified board and list of moves.
+    :param board: 3 by 3 numpy array of the current board
+    :param moves: list of available moves on the current board
+    :param beast_prob: the Probability class of the current beasts probabilities
+    :return: the modified board and list of moves
+    """
+    beast_idx = beast_prob.draw_idx()
+    animal_cnt[beast_idx] += 1
+    if VERBOSE:
+        print("invoked: " + str(BEAST_STRING[beast_idx]))
+    beast_list = [wasp, chameleon, snake, cheetah]
+    ret_board, ret_moves = beast_list[beast_idx](board, moves)
     return ret_board, ret_moves
 
 
 def wasp(board, moves):
+    """
+    the wasp logic is:
+    123  456
+    456->789
+    789  123
+    :param board:
+    :param moves:
+    :return:
+    """
     # shift rows up with wrap around
     wasp_permu = {'00': '10', '01': '11', '02': '12', '10': '20', '11': '21', '12': '22', '20': '00', '21': '01',
                   '22': '02'}
@@ -22,11 +39,26 @@ def wasp(board, moves):
 
 
 def chameleon(board, moves):
+    """
+    the chameleon logic is to flip every red to black and the opposite
+    :param board:
+    :param moves:
+    :return:
+    """
     # flip 1s to -1s and the other way
     return board * -1, moves
 
 
 def snake(board, moves):
+    """
+    the snake logic is:
+    123  236
+    456->159
+    789  478
+    :param board:
+    :param moves:
+    :return:
+    """
     # counter clockwise turn
     snake_perm = {'00': '01', '01': '02', '02': '12', '10': '00', '11': '11', '12': '22', '20': '10', '21': '20',
                   '22': '21'}
@@ -34,7 +66,13 @@ def snake(board, moves):
 
 
 def cheetah(board, moves):
-    cheetah_moves = [b_value, b_value, r_value, r_value]
+    """
+    the cheetah logic is to play two black turns and then two red turns
+    :param board:
+    :param moves:
+    :return:
+    """
+    cheetah_moves = [BLACK_VALUE, BLACK_VALUE, RED_VALUE, RED_VALUE]
     int_board = np.copy(board)
     int_moves = np.copy(moves)
     for idx in range(min(len(int_moves), 4)):
@@ -48,6 +86,14 @@ def cheetah(board, moves):
 
 
 def permutate_board(board, moves_list, permu):
+    """
+    implements a generic permutation on the board.
+    given a needed permutation, performs it on the board and on the list of moves
+    :param board:
+    :param moves_list:
+    :param permu:dictionary of origins as key and destination as value
+    :return:
+    """
     permu_board = np.copy(board)
     permu_moves = np.copy(moves_list)
     reverse_perm = {}
@@ -66,8 +112,13 @@ def permutate_board(board, moves_list, permu):
 
 
 def validate_board(board):
-    B_WON = 3 * b_value
-    R_WON = 3 * r_value
+    """
+    validates a single board to see if there's a winner or a draw.
+    :param board:
+    :return: True if the game ended and the winner (None if none won)
+    """
+    B_WON = 3 * BLACK_VALUE
+    R_WON = 3 * RED_VALUE
     values = np.append(
         np.append(board.sum(axis=0),
                   board.sum(axis=1)),
@@ -77,12 +128,12 @@ def validate_board(board):
     ret = False
     for value in values:
         if value == B_WON:
-            winner = b_value
+            winner = BLACK_VALUE
             ret = True
         elif value == R_WON:
-            winner = r_value
+            winner = RED_VALUE
             ret = True
-    if (not ret) and (not (d_value in board)):
-        winner = d_value
+    if (not ret) and (not (DRAW_VALUE in board)):
+        winner = DRAW_VALUE
         ret = True
     return ret, winner

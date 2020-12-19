@@ -7,7 +7,7 @@ from bokeh.io import output_file
 from bokeh.transform import transform
 from Game import Game
 from Probability import Probability
-from constants import animal_cnt, num_of_animal, verbose, b_value, r_value, d_value
+from constants import animal_cnt, num_of_animal, VERBOSE, BLACK_VALUE, RED_VALUE, DRAW_VALUE
 
 
 def run_games(special_prob_dist, selected_animal_prob, draw_max_weight, draw_resulotion, plays_per_comb):
@@ -18,24 +18,24 @@ def run_games(special_prob_dist, selected_animal_prob, draw_max_weight, draw_res
     data = []
     for draw_weight in range(1, draw_max_weight, draw_resulotion):
         # Generating the games
-        res = {b_value: 0, d_value: 0, r_value: 0}
+        res = {BLACK_VALUE: 0, DRAW_VALUE: 0, RED_VALUE: 0}
         draw_prob = Probability(2, [draw_max_weight - draw_weight, draw_weight])
         game = Game(special_prob, animal_prob, draw_prob)
         for i in range(plays_per_comb):
-            if verbose:
+            if VERBOSE:
                 print("starting game " + str(i))
             res[game.play_game()] += 1
-            if verbose:
+            if VERBOSE:
                 print('result stake: ' + str(res))
             game.reset()
         # Converting results into percentages
         factor = 100.0 / sum(res.values())
         for k in res:
             res[k] = res[k] * factor
-        if verbose:
+        if VERBOSE:
             print("finished params, result: " + str(res))
         # Inserting the data into the data list
-        data.append([draw_weight, draw_max_weight, res[b_value], res[r_value], res[d_value],
+        data.append([draw_weight, draw_max_weight, res[BLACK_VALUE], res[RED_VALUE], res[DRAW_VALUE],
                      special_prob_dist[1] / sum(special_prob_dist)])
         idx += 1
     df = pd.DataFrame(data,

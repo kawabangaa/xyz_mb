@@ -1,7 +1,7 @@
-b_value = 1
-r_value = -1
-d_value = 0
+BLACK_VALUE = 1
+RED_VALUE = -1
+DRAW_VALUE = 0
 num_of_animal = 4
-verbose = True
+VERBOSE = True
 animal_cnt = [0 for i in range(num_of_animal)]
 #123
