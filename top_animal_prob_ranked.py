@@ -48,9 +48,10 @@ def run_and_plot_top_animal_prob(top_configurations):
 
 
 if __name__ == '__main__':
-    top_beast_probabilities = [[0.375, 0.125, 0.375, 0.125],
-                               [0.364, 0.273, 0.273, 0.09],
-                               [0.3, 0.2, 0.4, 0.01],
-                               [0.273, 0.364, 0.273, 0.09],
-                               [0.182, 0.364, 0.364, 0.09]]
+    top_beast_probabilities =   [[1,2,3,2],
+                                    [3,1,2,1],
+                                    [3,4,4,2],
+                                    [3,1,2,4],
+                                    [4,3,3,3]]
+
     run_and_plot_top_animal_prob(top_beast_probabilities)

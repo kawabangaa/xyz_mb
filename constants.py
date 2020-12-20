@@ -4,7 +4,7 @@ DRAW_VALUE = 0
 NUM_OF_BEASTS = 4
 VERBOSE = False
 animal_cnt = [0 for i in range(NUM_OF_BEASTS)]
-
+POSSIBLE_PLAYER_VALUES = [BLACK_VALUE, RED_VALUE]
 WASP_WEIGHT_COL_CONST = 'wasp weight'
 CHAM_WEIGHT_COL_CONST = 'chameleon weight'
 SNAKE_WEIGHT_COL_CONST = 'snake weight'

@@ -1,6 +1,8 @@
+from random import randint
+
 import numpy as np
 from constants import animal_cnt
-from constants import BLACK_VALUE, RED_VALUE, DRAW_VALUE, VERBOSE
+from constants import BLACK_VALUE, RED_VALUE, DRAW_VALUE, VERBOSE,POSSIBLE_PLAYER_VALUES
 
 BEAST_STRING = ["wasp", "chameleon", "snake", "cheetah"]
 
@@ -72,7 +74,10 @@ def cheetah(board, moves):
     :param moves:
     :return:
     """
-    cheetah_moves = [BLACK_VALUE, BLACK_VALUE, RED_VALUE, RED_VALUE]
+    first_idx = randint(0, 1)
+    second_idx = (first_idx + 1) % 2
+    cheetah_moves = [POSSIBLE_PLAYER_VALUES[first_idx], POSSIBLE_PLAYER_VALUES[first_idx],
+                     POSSIBLE_PLAYER_VALUES[second_idx], POSSIBLE_PLAYER_VALUES[second_idx]]
     int_board = np.copy(board)
     int_moves = np.copy(moves)
     for idx in range(min(len(int_moves), 4)):

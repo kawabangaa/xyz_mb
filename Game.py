@@ -1,6 +1,6 @@
 import numpy as np
 from random import randint
-from constants import BLACK_VALUE, RED_VALUE, DRAW_VALUE, VERBOSE
+from constants import BLACK_VALUE, RED_VALUE, DRAW_VALUE, VERBOSE,POSSIBLE_PLAYER_VALUES
 from rounds import invoke_beast, validate_board
 
 RAND_TACTIC = "random"
@@ -8,7 +8,19 @@ DRAW_TACTIC = "draw"
 
 
 class Game:
-
+    """
+    Game class implements a full game minus the beasts logic.
+    A game is a board and list of possible moves (unmarked tiles)
+    Upon creation, the game is fed with all the probabilities required: special probability, beast probability,
+    draw probability (draw tactic probability).
+    A game is played untill a winner is declared or a draw. Meaning rounds are played (moves are consumed)
+    and the board is being validated to check for a winner after each round.
+    At the beginning of each round, random decides which player plays first.
+    Each round is made up from turns: two player turns and a beast turn (decided by a sample from beast probability)
+    or if its the last round a single player (without a beast).
+    Player turn can be with either random tactic or draw tactic. Random tactic is just the first move in the move list,
+    draw tactic tries first to block the other player and if no block is needed then plays regular random.
+    """
     def __init__(self, special_prob, animal_prob, draw_prob):
         self.special_prob = special_prob
         self.animal_prob = animal_prob
@@ -65,8 +77,8 @@ class Game:
             self.moves_list = np.delete(self.moves_list,
                                         np.where(np.all(self.moves_list == [row_idx[0][0], col_idx[0][0]], axis=1)),
                                         axis=0)
-            return
-
+            return True
+        return False
     def draw_tactic_col_check(self, color):
         """
          part of the draw tactic, checks if there's a column with 2 tiles marked with the opposite player color
@@ -85,8 +97,8 @@ class Game:
             self.moves_list = np.delete(self.moves_list,
                                         np.where(np.all(self.moves_list == [row_idx[0][0], col_idx[0][0]], axis=1)),
                                         axis=0)
-            return
-
+            return True
+        return False
     def draw_tactic_diag_check(self, color):
         """
         part of the draw tactic, checks if there's a diagonal with 2 tiles marked with the opposite player color
@@ -108,7 +120,8 @@ class Game:
                         self.moves_list = np.delete(self.moves_list,
                                                     np.where(np.all(self.moves_list == [indices[0], indices[1]],
                                                                     axis=1)), axis=0)
-                        return
+                        return True
+        return False
 
     def play_turn_draw_tactic(self, color):
         """
@@ -117,9 +130,12 @@ class Game:
         :param color: the color of the current player's turn
         :return:
         """
-        self.draw_tactic_row_check(color)
-        self.draw_tactic_col_check(color)
-        self.draw_tactic_diag_check(color)
+        if self.draw_tactic_row_check(color):
+            return
+        if self.draw_tactic_col_check(color):
+            return
+        if self.draw_tactic_diag_check(color):
+            return
         # else, just play random
         selected = self.moves_list[0]
         self.board[selected[0]][selected[1]] = color
@@ -146,13 +162,13 @@ class Game:
         the last move).
         :return:
         """
-        available_board_values = [BLACK_VALUE, RED_VALUE]
+        
         if len(self.moves_list) == 1:
             # single player plays this round
             value_idx = randint(0, 1)
-            self.play_turn(available_board_values[value_idx], self.tactics[available_board_values[value_idx]])
+            self.play_turn(POSSIBLE_PLAYER_VALUES[value_idx], self.tactics[POSSIBLE_PLAYER_VALUES[value_idx]])
             if VERBOSE:
-                self.print_status("player {} played".format(available_board_values[value_idx]))
+                self.print_status("player {} played".format(POSSIBLE_PLAYER_VALUES[value_idx]))
             if self.check_game_finished():
                 return True
 
@@ -160,9 +176,9 @@ class Game:
             # two players play this round
             value_idx = randint(0, 1)
             for i in range(2):
-                self.play_turn(available_board_values[value_idx], self.tactics[available_board_values[value_idx]])
+                self.play_turn(POSSIBLE_PLAYER_VALUES[value_idx], self.tactics[POSSIBLE_PLAYER_VALUES[value_idx]])
                 if VERBOSE:
-                    self.print_status("player {} played".format(available_board_values[value_idx]))
+                    self.print_status("player {} played".format(POSSIBLE_PLAYER_VALUES[value_idx]))
                 value_idx += 1
                 value_idx %= 2
                 if self.check_game_finished():

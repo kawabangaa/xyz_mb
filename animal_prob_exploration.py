@@ -59,5 +59,5 @@ if __name__ == '__main__':
     s_distribution = [2, 1]
     max_beast_weight = 5
     beast_weight_resolution = 1
-    games_per_combination = 1000
+    games_per_combination = 5000
     run_and_plot_animal_prob(s_distribution, max_beast_weight, beast_weight_resolution, games_per_combination)

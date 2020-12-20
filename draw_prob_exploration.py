@@ -34,8 +34,7 @@ def run_games(special_prob_dist, selected_animal_prob, golden_draw_percentage, d
         if VERBOSE:
             print("finished params, result: " + str(res))
         # Inserting the data into the data list
-        data.append([draw_weight, draw_max_weight, res[BLACK_VALUE], res[RED_VALUE], res[DRAW_VALUE],
-                     special_prob_dist[1] / sum(special_prob_dist)])
+        data.append([draw_weight, draw_max_weight, res[BLACK_VALUE], res[RED_VALUE], res[DRAW_VALUE]])
         idx += 1
     df = pd.DataFrame(data,
                       columns=[DRAW_WEIGHT_COL, DRAW_MAX_WEIGHT_COL, BLACK_PERC_COL_CONST, RED_PERC_COL_CONST, DRAW_PERC_COL_CONST])
@@ -51,5 +50,5 @@ def run_and_plot_draw_prob(s, b, g):
 if __name__ == '__main__':
     g = 25 # in percentages
     s = [2, 1] # weights
-    b = [0.273, 0.364, 0.273, 0.09] # selected beast probability
+    b = [3,	4,	4,	1] # selected beast probability
     run_and_plot_draw_prob(s, b, g)
